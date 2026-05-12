@@ -17,7 +17,7 @@ Akibatnya pesan-pesan tersebut mengantri di RabbitMQ. Jika publisher
 dijalankan 4 kali, ada 20 pesan dikirim, tapi subscriber hanya memproses
 1 per detik.
 
-Ini adalah keunggulan event-driven architecture: meski subscriber lambat,
+keunggulan event-driven architecture: meski subscriber lambat,
 sistem tidak crash. Pesan tersimpan aman di antrian dan akan diproses
 satu per satu sesuai kapasitas subscriber.
 
@@ -47,3 +47,38 @@ Hal yang bisa diperbaiki dari kode saat ini:
    tidak ada retry mechanism yang jelas selain dead letter queue.
 3. Data di publisher statis (nama hardcoded), bisa dibuat lebih dinamis
    dengan menerima input dari file atau command line argument.
+
+# Bonus: Running on Cloud (CloudAMQP)
+
+Sebagai bonus, eksperimen ini dijalankan ulang menggunakan **CloudAMQP**
+sebagai message broker berbasis cloud, menggantikan RabbitMQ yang 
+sebelumnya berjalan di local machine.
+
+### Mengapa Cloud?
+Dengan broker di cloud, subscriber tidak perlu berada di mesin yang sama 
+dengan publisher. Keduanya cukup terhubung ke URL CloudAMQP yang sama dan 
+komunikasi event-driven tetap berjalan dengan sempurna, membuktikan bahwa 
+arsitektur ini benar-benar loosely coupled dan location-independent.
+
+### Perubahan yang Dilakukan
+URL koneksi AMQP pada subscriber diubah menjadi URL CloudAMQP:
+// Sebelum (lokal):
+amqp://guest:guest@localhost:5672
+
+// Sesudah (cloud):
+amqp://username:password@broker.cloudamqp.com/username
+
+### Hasil Simulasi Slow Subscriber di Cloud
+Simulasi slow subscriber juga berhasil dijalankan di cloud. Antrian
+pesan tetap menumpuk di CloudAMQP ketika subscriber berjalan lambat,
+dan berkurang lebih cepat ketika 3 subscriber dijalankan sekaligus.
+Hal ini membuktikan bahwa konsep horizontal scaling dan antrian
+event-driven bekerja sama baiknya di cloud maupun di lokal.
+
+![CloudAMQP Subscriber](screenshot_cloudamqp_subscriber.png)
+
+### Running at Least Three Subscribers
+![alt text](image-4.png)
+![alt text](image-6.png)
+![alt text](image-5.png)
+![alt text](image-7.png)
